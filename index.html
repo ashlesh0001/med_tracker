@@ -60,15 +60,16 @@ h1{font-family:'Fraunces',Georgia,serif; margin:0; text-wrap:balance;}
 .jump-today{align-self:flex-start; font-size:12px; font-weight:600; color:var(--amber-deep); background:var(--amber-tint); border:none; padding:6px 12px; border-radius:999px; cursor:pointer;}
 .strip{display:flex; gap:8px; overflow-x:auto; padding-block:4px 14px; margin-inline:-16px; padding-inline:16px; scroll-snap-type:x proximity; scrollbar-width:none; width:calc(100% + 32px);}
 .strip::-webkit-scrollbar{display:none;}
-.day{position:relative; flex:0 0 auto; width:50px; height:64px; border:none; background:none; cursor:pointer; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border-radius:14px; color:var(--ink-soft);}
-.day-dow{font-size:10px; text-transform:uppercase; letter-spacing:.04em;}
-.day-num{font-size:16px; font-weight:600; font-family:'Fraunces',serif; color:var(--ink); position:relative; z-index:1; font-variant-numeric:tabular-nums;}
-.day-ring{position:absolute; top:0; left:50%; transform:translateX(-50%); width:38px; height:38px; border-radius:50%;}
+.day{position:relative; flex:0 0 auto; width:50px; border:none; background:none; cursor:pointer; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; border-radius:14px; color:var(--ink-soft); padding-block:6px 8px;}
+.day-dow{font-size:10px; text-transform:uppercase; letter-spacing:.04em; line-height:1;}
+.day-circle{position:relative; width:38px; height:38px; flex:none;}
+.day-ring{position:absolute; inset:0; border-radius:50%;}
 .day-ring::after{content:""; position:absolute; inset:3px; border-radius:50%; background:var(--paper);}
+.day-num{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; font-family:'Fraunces',serif; color:var(--ink); z-index:1; font-variant-numeric:tabular-nums;}
 .day.is-viewed{background:var(--paper-raised); box-shadow:var(--shadow);}
 .day.is-viewed .day-num{color:var(--amber-deep);}
 .day.is-today .day-dow{color:var(--amber-deep); font-weight:700;}
-.day-flag{position:absolute; bottom:2px; font-size:10px; z-index:1;}
+.day-flag{position:absolute; top:-2px; right:2px; font-size:10px; z-index:2;}
 .slot{margin-bottom:22px;}
 .slot-head{display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft);}
 .slot-head svg{width:15px; height:15px; flex:none; color:var(--sage);}
@@ -214,9 +215,11 @@ button{font:inherit;}
         if(date===todayStr()) classes.push('is-today');
         if(date===viewedDate) classes.push('is-viewed');
         return '<button type="button" class="'+classes.join(' ')+'" data-date="'+date+'" aria-current="'+(date===viewedDate)+'" aria-label="'+dtFull.format(d)+', '+c.done+' of '+c.total+' taken">'+
-          '<span class="day-ring" style="background:conic-gradient(var(--success) '+(c.pct*3.6)+'deg, var(--line) 0deg)"></span>'+
           '<span class="day-dow">'+dtDow.format(d)+'</span>'+
-          '<span class="day-num">'+d.getDate()+'</span>'+
+          '<span class="day-circle">'+
+            '<span class="day-ring" style="background:conic-gradient(var(--success) '+(c.pct*3.6)+'deg, var(--line) 0deg)"></span>'+
+            '<span class="day-num">'+d.getDate()+'</span>'+
+          '</span>'+
           (date===PRIMING_END ? '<span class="day-flag">🩸</span>' : '')+
         '</button>';
       }).join('')+
