@@ -1,0 +1,288 @@
+<title>Priming Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --paper:#F5F7F3;
+  --paper-raised:#FFFFFF;
+  --ink:#1E3229;
+  --ink-soft:#516156;
+  --line:#DEE5DA;
+  --amber:#B8722E;
+  --amber-deep:#8F5620;
+  --amber-tint:#F4E5CE;
+  --sage:#7C9184;
+  --success:#3F7A56;
+  --success-tint:#E1EEE4;
+  --indigo:#4A4472;
+  --indigo-tint:#EBE8F5;
+  --shadow:0 1px 2px rgba(30,50,41,.06), 0 4px 16px rgba(30,50,41,.06);
+  --radius:16px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141F19; --paper-raised:#1C2A22; --ink:#EAF1EC; --ink-soft:#9FB4A7;
+    --line:#2B3B32; --amber:#E3A55E; --amber-deep:#F2C084; --amber-tint:rgba(227,165,94,.16);
+    --sage:#93AC9C; --success:#71C293; --success-tint:rgba(113,194,147,.14);
+    --indigo:#ABA1E8; --indigo-tint:rgba(171,161,232,.16);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+    --paper:#141F19; --paper-raised:#1C2A22; --ink:#EAF1EC; --ink-soft:#9FB4A7;
+    --line:#2B3B32; --amber:#E3A55E; --amber-deep:#F2C084; --amber-tint:rgba(227,165,94,.16);
+    --sage:#93AC9C; --success:#71C293; --success-tint:rgba(113,194,147,.14);
+    --indigo:#ABA1E8; --indigo-tint:rgba(171,161,232,.16);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+    color-scheme: dark;
+}
+*{box-sizing:border-box;}
+html{width:100%;}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Work Sans',system-ui,-apple-system,sans-serif;
+  padding-inline:16px; padding-block:20px 48px;
+  width:100%; max-width:620px; margin-inline:auto;
+}
+h1{font-family:'Fraunces',Georgia,serif; margin:0; text-wrap:balance;}
+.wrap{display:flex; flex-direction:column; width:100%;}
+.eyebrow{font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--amber-deep); font-weight:600;}
+.top{display:flex; flex-direction:column; gap:10px; margin-bottom:20px;}
+.top-row{display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;}
+.save-chip{font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; background:var(--success-tint); color:var(--success); white-space:nowrap; transition:background .2s,color .2s;}
+.save-chip[data-state="offline"],.save-chip[data-state="error"]{background:var(--indigo-tint); color:var(--indigo);}
+#dateTitle{font-size:clamp(22px,5vw,30px); font-weight:600;}
+.day-meta{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-soft); font-variant-numeric:tabular-nums; flex-wrap:wrap;}
+.day-meta span{white-space:nowrap;}
+.progress-track{flex:1; min-width:80px; height:6px; border-radius:999px; background:var(--line); overflow:hidden;}
+.progress-fill{height:100%; background:var(--success); border-radius:999px; transition:width .3s ease;}
+.jump-today{align-self:flex-start; font-size:12px; font-weight:600; color:var(--amber-deep); background:var(--amber-tint); border:none; padding:6px 12px; border-radius:999px; cursor:pointer;}
+.strip{display:flex; gap:8px; overflow-x:auto; padding-block:4px 14px; margin-inline:-16px; padding-inline:16px; scroll-snap-type:x proximity; scrollbar-width:none; width:calc(100% + 32px);}
+.strip::-webkit-scrollbar{display:none;}
+.day{position:relative; flex:0 0 auto; width:50px; height:64px; border:none; background:none; cursor:pointer; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border-radius:14px; color:var(--ink-soft);}
+.day-dow{font-size:10px; text-transform:uppercase; letter-spacing:.04em;}
+.day-num{font-size:16px; font-weight:600; font-family:'Fraunces',serif; color:var(--ink); position:relative; z-index:1; font-variant-numeric:tabular-nums;}
+.day-ring{position:absolute; top:0; left:50%; transform:translateX(-50%); width:38px; height:38px; border-radius:50%;}
+.day-ring::after{content:""; position:absolute; inset:3px; border-radius:50%; background:var(--paper);}
+.day.is-viewed{background:var(--paper-raised); box-shadow:var(--shadow);}
+.day.is-viewed .day-num{color:var(--amber-deep);}
+.day.is-today .day-dow{color:var(--amber-deep); font-weight:700;}
+.day-flag{position:absolute; bottom:2px; font-size:10px; z-index:1;}
+.slot{margin-bottom:22px;}
+.slot-head{display:flex; align-items:center; gap:8px; margin:0 0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-soft);}
+.slot-head svg{width:15px; height:15px; flex:none; color:var(--sage);}
+.slot-list{display:flex; flex-direction:column; gap:8px;}
+.dose{display:flex; align-items:center; gap:12px; background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; cursor:pointer; box-shadow:var(--shadow); transition:background .2s,border-color .2s;}
+.dose.is-done{background:var(--success-tint); border-color:transparent;}
+.check{flex:none; width:26px; height:26px; border-radius:50%; border:2px solid var(--line); background:var(--paper); display:flex; align-items:center; justify-content:center; padding:0; transition:background .2s,border-color .2s;}
+.dose.is-done .check{background:var(--success); border-color:var(--success);}
+.check svg{width:14px; height:14px; opacity:0; transform:scale(.6); transition:opacity .15s,transform .15s; stroke:white;}
+.dose.is-done .check svg{opacity:1; transform:scale(1);}
+.dose-info{flex:1; min-width:0;}
+.dose-name{font-weight:600; font-size:15px; display:flex; gap:6px; align-items:baseline; flex-wrap:wrap;}
+.dose-amt{font-weight:500; color:var(--amber-deep); font-size:13px;}
+.dose.is-done .dose-name{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--sage);}
+.dose-note{font-size:12.5px; color:var(--ink-soft); margin-top:2px; line-height:1.35;}
+.dose-time{flex:none; text-align:right; font-size:11px; color:var(--ink-soft); display:flex; flex-direction:column; gap:2px; align-items:flex-end; font-variant-numeric:tabular-nums;}
+.taken-at{color:var(--success); font-weight:600;}
+.labs-card{display:flex; gap:10px; background:var(--indigo-tint); border-radius:var(--radius); padding:14px; margin-bottom:18px; font-size:13px; color:var(--ink);}
+.labs-card strong{display:block; font-family:'Fraunces',serif; font-size:15px; margin-bottom:3px;}
+.all-done{text-align:center; font-size:13px; color:var(--success); font-weight:600; padding:10px 0 2px;}
+.foot{margin-top:28px; padding-top:16px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+.foot p{margin:0 0 6px;}
+.foot p:last-child{margin-bottom:0;}
+.foot strong{color:var(--ink);}
+button{font:inherit;}
+:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+@media (min-width:640px){
+  body{padding-block:36px 56px;}
+  .dose{padding:14px 16px;}
+  .day{width:54px;}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important;} }
+</style>
+<div class="wrap"></div>
+<script>
+(function(){
+  var STORAGE_KEY = 'priming-tracker-state';
+  var SEED_STATE = {"2026-09-11":{"synthroid":{"done":true,"at":"2026-09-12T21:47:01.209Z"}}};
+
+  var PRIMING_START = '2026-09-11';
+  var PRIMING_END = '2026-10-02';
+
+  var ICONS = {
+    morning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="14" r="4.2"/><path d="M12 3v2.2M4.5 8.5l1.6 1.5M19.5 8.5l-1.6 1.5M2 20h20"/></svg>',
+    evening: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="4"/><path d="M4 20h16M6 17.2l1.4-1.4M18 17.2l-1.4-1.4"/></svg>',
+    bedtime: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.4 6.4 0 0 0 10.5 10.5Z"/></svg>'
+  };
+  var SLOT_LABEL = { morning:'Morning', evening:'Evening', bedtime:'Bedtime' };
+  var SLOT_ORDER = ['morning','evening','bedtime'];
+
+  var MEDS = [
+    { id:'synthroid', name:'Synthroid', dose:'75 mcg', slot:'morning', time:'~7:00 AM', note:'Empty stomach, water only — wait 30–45 min before eating.', day1:true },
+    { id:'provera', name:'Provera', dose:'10 mg', slot:'morning', time:'~7:45 AM', note:'With breakfast.', day1:false },
+    { id:'estrace-am', name:'Estrace', dose:'2 mg', slot:'morning', time:'~7:45 AM', note:'Dose 1 of 2, with breakfast.', day1:false },
+    { id:'omnitrope', name:'Omnitrope', dose:'0.17 mg · 3 units', slot:'evening', time:'~7:00–7:30 PM', note:'Subcutaneous injection. Rotate the site.', day1:false },
+    { id:'estrace-pm', name:'Estrace', dose:'2 mg', slot:'bedtime', time:'~10:00 PM', note:'Dose 2 of 2, ~12 hrs after the morning dose.', day1:false },
+    { id:'coq10', name:'CoQ10', dose:'', slot:'bedtime', time:'~10:00 PM', note:'With food.', day1:false },
+    { id:'prenatal', name:'Prenatal Vitamin', dose:'1 tablet', slot:'bedtime', time:'~10:00 PM', note:'Kept apart from the morning Synthroid.', day1:true },
+    { id:'ldn', name:'LDN', dose:'4.5 mg', slot:'bedtime', time:'~10:00 PM', note:'Low-dose naltrexone.', day1:true }
+  ];
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function fmt(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function parseISO(s){ var p=s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+  function addDays(s,n){ var d=parseISO(s); d.setDate(d.getDate()+n); return fmt(d); }
+  function todayStr(){ return fmt(new Date()); }
+
+  function allDates(){
+    var out=[], d=PRIMING_START;
+    while(true){ out.push(d); if(d===PRIMING_END) break; d=addDays(d,1); }
+    return out;
+  }
+  var DATES = allDates();
+
+  function medsForDate(date){
+    if(date===PRIMING_START) return MEDS.filter(function(m){ return m.day1; });
+    return MEDS;
+  }
+
+  var storageOK = true;
+  var state = {};
+  (function loadState(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      state = raw ? (JSON.parse(raw) || {}) : JSON.parse(JSON.stringify(SEED_STATE));
+    }catch(e){
+      storageOK = false;
+      state = JSON.parse(JSON.stringify(SEED_STATE));
+    }
+  })();
+
+  function persist(){
+    if(!storageOK) return false;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true; }
+    catch(e){ storageOK = false; return false; }
+  }
+
+  var viewedDate = todayStr();
+  if(DATES.indexOf(viewedDate)===-1){
+    viewedDate = (viewedDate < PRIMING_START) ? PRIMING_START : PRIMING_END;
+  }
+
+  function getDose(date,id){ return (state[date] && state[date][id]) || { done:false, at:null }; }
+  function setDose(date,id,val){ if(!state[date]) state[date]={}; state[date][id]=val; }
+  function completion(date){
+    var meds = medsForDate(date);
+    var done = meds.filter(function(m){ return getDose(date,m.id).done; }).length;
+    return { done:done, total:meds.length, pct: meds.length ? Math.round(done/meds.length*100) : 0 };
+  }
+
+  var dtFull = new Intl.DateTimeFormat('en-US', { weekday:'long', month:'long', day:'numeric' });
+  var dtDow = new Intl.DateTimeFormat('en-US', { weekday:'short' });
+  var dtTime = new Intl.DateTimeFormat('en-US', { hour:'numeric', minute:'2-digit' });
+
+  function saveChipHTML(){
+    if(!storageOK) return '<span class="save-chip" data-state="offline">Not saving — private browsing?</span>';
+    return '<span class="save-chip" data-state="saved">Saved on this device</span>';
+  }
+
+  function headerHTML(){
+    var d = parseISO(viewedDate);
+    var idx = DATES.indexOf(viewedDate)+1;
+    var c = completion(viewedDate);
+    var isToday = viewedDate===todayStr();
+    return '<header class="top">'+
+      '<div class="top-row"><span class="eyebrow">IVF Priming Cycle</span>'+saveChipHTML()+'</div>'+
+      '<h1 id="dateTitle">'+dtFull.format(d)+'</h1>'+
+      '<div class="day-meta">'+
+        '<span>Day '+idx+' of '+DATES.length+'</span>'+
+        '<div class="progress-track"><div class="progress-fill" style="width:'+c.pct+'%"></div></div>'+
+        '<span>'+c.done+' of '+c.total+' taken</span>'+
+      '</div>'+
+      (isToday ? '' : '<button type="button" class="jump-today" id="jumpToday">Jump to today</button>')+
+    '</header>';
+  }
+
+  function stripHTML(){
+    return '<nav class="strip" id="strip" aria-label="Priming calendar, September 11 to October 2">'+
+      DATES.map(function(date){
+        var d = parseISO(date);
+        var c = completion(date);
+        var classes = ['day'];
+        if(date===todayStr()) classes.push('is-today');
+        if(date===viewedDate) classes.push('is-viewed');
+        return '<button type="button" class="'+classes.join(' ')+'" data-date="'+date+'" aria-current="'+(date===viewedDate)+'" aria-label="'+dtFull.format(d)+', '+c.done+' of '+c.total+' taken">'+
+          '<span class="day-ring" style="background:conic-gradient(var(--success) '+(c.pct*3.6)+'deg, var(--line) 0deg)"></span>'+
+          '<span class="day-dow">'+dtDow.format(d)+'</span>'+
+          '<span class="day-num">'+d.getDate()+'</span>'+
+          (date===PRIMING_END ? '<span class="day-flag">🩸</span>' : '')+
+        '</button>';
+      }).join('')+
+    '</nav>';
+  }
+
+  function slotsHTML(){
+    var meds = medsForDate(viewedDate);
+    var bySlot = {};
+    meds.forEach(function(m){ (bySlot[m.slot]=bySlot[m.slot]||[]).push(m); });
+    var html = '<main id="slots">';
+    if(viewedDate===PRIMING_END){
+      html += '<div class="labs-card"><div><strong>Clinic labs today</strong>Follicular scan · AMH · E2 · Progesterone · LH · FSH · TSH · Free T3 · Free T4 · hCG</div></div>';
+    }
+    SLOT_ORDER.forEach(function(slot){
+      var list = bySlot[slot];
+      if(!list || !list.length) return;
+      html += '<section class="slot"><h2 class="slot-head">'+ICONS[slot]+'<span>'+SLOT_LABEL[slot]+'</span></h2><div class="slot-list">'+
+        list.map(function(m){
+          var ds = getDose(viewedDate,m.id);
+          var takenLabel = (ds.done && ds.at) ? dtTime.format(new Date(ds.at)) : '';
+          return '<article class="dose'+(ds.done?' is-done':'')+'" data-med="'+m.id+'" data-date="'+viewedDate+'">'+
+            '<button type="button" class="check" role="checkbox" aria-checked="'+ds.done+'" aria-label="Mark '+m.name+' taken"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></button>'+
+            '<div class="dose-info"><div class="dose-name">'+m.name+(m.dose?' <span class="dose-amt">'+m.dose+'</span>':'')+'</div><div class="dose-note">'+m.note+'</div></div>'+
+            '<div class="dose-time"><span class="time-hint">'+m.time+'</span>'+(takenLabel?'<span class="taken-at">✓ '+takenLabel+'</span>':'')+'</div>'+
+          '</article>';
+        }).join('')+
+      '</div></section>';
+    });
+    var c = completion(viewedDate);
+    if(c.total>0 && c.done===c.total){ html += '<p class="all-done">All doses logged for this day 🌿</p>'; }
+    html += '</main>';
+    return html;
+  }
+
+  function footerHTML(){
+    return '<footer class="foot">'+
+      '<p>Return to clinic <strong>Friday, October 2</strong> for a follicular scan and labs — AMH, E2, Progesterone, LH, FSH, TSH, Free T3, Free T4, hCG.</p>'+
+      '<p>Saved only in this browser on this device. Add this page to your home screen so it opens the same place each time.</p>'+
+    '</footer>';
+  }
+
+  function appHTML(){ return headerHTML()+stripHTML()+slotsHTML()+footerHTML(); }
+
+  function render(){
+    var wrap = document.querySelector('.wrap');
+    wrap.innerHTML = appHTML();
+    var el = wrap.querySelector('.day.is-viewed');
+    if(el && el.scrollIntoView) el.scrollIntoView({ inline:'center', block:'nearest' });
+  }
+
+  function toggleDose(date,id){
+    var cur = getDose(date,id);
+    setDose(date,id, cur.done ? { done:false, at:null } : { done:true, at:new Date().toISOString() });
+    persist();
+    render();
+  }
+
+  render();
+  document.body.addEventListener('click', function(e){
+    var dayBtn = e.target.closest('.day');
+    if(dayBtn){ viewedDate = dayBtn.dataset.date; render(); return; }
+    var jump = e.target.closest('#jumpToday');
+    if(jump){ viewedDate = todayStr(); render(); return; }
+    var dose = e.target.closest('.dose');
+    if(dose){ toggleDose(dose.dataset.date, dose.dataset.med); return; }
+  });
+})();
+</script>
